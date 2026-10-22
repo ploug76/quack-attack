@@ -1,5 +1,5 @@
 <!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#d8541c"><link rel="apple-touch-icon" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#d8541c"><link rel="apple-touch-icon" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes">
 <title>Quack Attack</title><!--og--><meta name="description" content="Tap to shoot the flying ducks — 3 shots per duck, hit the quota each round, and don&#x27;t let Bucky laugh!"><meta property="og:type" content="website"><meta property="og:site_name" content="Peter&#x27;s Arcade"><meta property="og:title" content="Quack Attack"><meta property="og:description" content="Tap to shoot the flying ducks — 3 shots per duck, hit the quota each round, and don&#x27;t let Bucky laugh!"><meta property="og:url" content="https://ploug76.github.io/quack-attack/"><meta property="og:image" content="https://ploug76.github.io/quack-attack/cover.png"><meta property="og:image:secure_url" content="https://ploug76.github.io/quack-attack/cover.png"><meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Quack Attack 8-bit game box cover"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Quack Attack"><meta name="twitter:description" content="Tap to shoot the flying ducks — 3 shots per duck, hit the quota each round, and don&#x27;t let Bucky laugh!"><meta name="twitter:image" content="https://ploug76.github.io/quack-attack/cover.png"><!--/og--><style>
 html,body{margin:0;height:100%;overflow:hidden;background:#5cb8f8;touch-action:none;font-family:"Courier New",ui-monospace,monospace;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 canvas{display:block;position:fixed;left:0;top:0;width:100%;height:100%}
@@ -44,7 +44,7 @@ $('pause').onclick=e=>{e.stopPropagation();paused=!paused;ui()};$('mute').onclic
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;ui()});$('inst').onclick=e=>{e.stopPropagation();if(dp){dp.prompt();dp=null;ui()}};
 addEventListener('keydown',e=>{if((e.key=='p'||e.key=='P')&&(state=='play'||state=='inter')){paused=!paused;ui()}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&state=='play'){paused=true;ui()}});
-if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js');
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 let round=1,ducks=[],duckNo=0,hits=[],shots=3,phase='',phT=0,cross={x:-99,y:-99,f:0},feathers=[],buck={y:0,mode:'',t:0},GY=0,pops=[],perfect=0;
 const TYPES=[{c:'#3c9c3c',h:'#2a6a2a',pts:500,sp:1},{c:'#3c6cd8',h:'#24448c',pts:1000,sp:1.25},{c:'#b8542c',h:'#7a3218',pts:1500,sp:1.5}];
 function onResize(){GY=H*.74}
@@ -192,11 +192,19 @@ function draw(){scene();for(const d of ducks)duck(d);
  if(state=='over'){panel(H*.26,190*S,'#d8541c');if(dogS.dogged)txt('YOU GOT DOGGED!',W/2,H*.26+40*S,26*S,'#f8d838');else txt('GAME OVER',W/2,H*.26+40*S,32*S,'#f86c6c');txt(`SCORE ${score}`,W/2,H*.26+82*S,20*S,'#fff');txt(`ROUND ${round} · BEST ${best}`,W/2,H*.26+112*S,16.5*S,'#f8d838');const by=H*.26+154*S;if(canRestart()){const pu=1+Math.sin(t*.12)*.04,bw=W*.7*pu,bh=40*S*pu;g.fillStyle='#d8541c';rr(W/2-bw/2,by-bh/2,bw,bh,10*S);g.fill();g.strokeStyle='#fff';g.lineWidth=3*S;g.stroke();txt('TAP TO PLAY AGAIN',W/2,by,Math.max(20*S,17*(DPR||1)),'#fff','#000')}else{const k=Math.min(1,(performance.now()-overMs)/OVER_HOLD),bw=W*.5;g.fillStyle='rgba(255,255,255,.18)';g.fillRect(W/2-bw/2,by-3*S,bw,6*S);g.fillStyle='#f8d838';g.fillRect(W/2-bw/2,by-3*S,bw*k,6*S)}}}
 c.addEventListener('pointerdown',e=>{A();if(paused||state!='play')return;const r=c.getBoundingClientRect();shoot((e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height)});
 // Start/restart: listen on the whole document, not just the canvas or the TAP TO START text. Buttons (Share/Scores/Install/mute/pause, leaderboard, sample lock) stop propagation, and are skipped here too.
-const NOSTART='button,a,input,select,textarea,#dock,#dockHint,#palbOv,#smpLock,#smpBack';
-function tryStart(e){if(paused||(e&&e.target&&e.target.closest&&e.target.closest(NOSTART)))return false;if(state=='title'){startGame(startLv);return true}if(canRestart()){startGame(1);return true}return false}
-document.addEventListener('pointerdown',e=>{try{A()}catch(x){}tryStart(e)});
-['click','touchend'].forEach(ev=>document.addEventListener(ev,e=>{if(state=='title'){try{A()}catch(x){}tryStart(e)}}));
-addEventListener('keydown',e=>{if((e.key==' '||e.key=='Enter')&&(state=='title'||canRestart())){A();startGame(state=='title'?startLv:1)}});
+const NOSTART='button,a,input,select,textarea,#dock,#dockHint,#palbOv,#smpLock,#smpBack',START_GUARD=300;
+// A start tap must be a press that BEGAN >=300ms after the title screen appeared (no stray events from navigation/reload) and not on a button or the leaderboard popup.
+let titleAt=performance.now(),lastDown=null;
+const evT=e=>{const n=performance.now(),v=e&&e.timeStamp;return v>0&&v<=n+1000?v:n};
+const offLimits=tg=>!!(tg&&tg.closest&&tg.closest(NOSTART));
+const lbBusy=()=>{const o=document.getElementById('palbOv');return !!(o&&o.classList.contains('on'))||performance.now()-(window.__lbClosedAt||-1e9)<500};
+addEventListener('pointerdown',e=>{lastDown={ts:evT(e),off:offLimits(e.target),title:state=='title',used:false}},true);
+function tryStart(e,backup){if(paused||lbBusy()||offLimits(e&&e.target))return false;const d=lastDown;if(!d||d.off||d.used)return false;
+ if(state=='title'){if(!d.title||d.ts<titleAt+START_GUARD)return false;if(backup&&performance.now()-d.ts>1500)return false;d.used=true;startGame(startLv);return true}
+ if(!backup&&canRestart()&&d.ts>=overMs+OVER_HOLD-20){d.used=true;startGame(1);return true}return false}
+document.addEventListener('pointerdown',e=>{try{A()}catch(x){}tryStart(e,false)});
+['click','touchend'].forEach(ev=>document.addEventListener(ev,e=>{if(state=='title'&&tryStart(e,true)){try{A()}catch(x){}}}));
+addEventListener('keydown',e=>{if(e.repeat||lbBusy()||!(e.key==' '||e.key=='Enter'))return;if(state=='title'&&performance.now()>=titleAt+START_GUARD){A();startGame(startLv)}else if(canRestart()){A();startGame(1)}});
 const SND={shot:()=>{noise(.25,.5,1500);tone(90,0,.15,'square',.1,40)},quack:()=>{tone(520,0,.09,'sawtooth',.05,380);tone(480,.11,.09,'sawtooth',.05,340)},hit:()=>{tone(800,0,.1,'square',.06,300)},
 thud:()=>{tone(80,0,.2,'sine',.2,40);seq([523,659,784],.08,'square',.05)},away:()=>seq([660,520,440],.07,'triangle',.06),laugh:()=>{for(let i=0;i<4;i++)tone(300-i*20,i*.12,.09,'square',.05,250-i*20)},
 growl:()=>{tone(72,0,.6,'sawtooth',.045,55);noise(.6,.05,320)},cock:()=>{tone(1200,0,.03,'square',.035);tone(900,.07,.03,'square',.035)},pop:()=>{tone(700,0,.12,'square',.06,140);noise(.12,.12,2500)},crack:()=>{noise(.3,.14,4000);tone(200,0,.2,'triangle',.05,60)},
@@ -382,7 +390,7 @@ async function postNow(){if(!G)return;const F=x=>x==null?()=>undefined:typeof x=
   return show()}
 const api={init,postNow,syncBest,localBest,gameOver,submitQuiet,watch,show,close,isOpen:()=>open,get backend(){return REMOTE?REMOTE.name:'local'},_t:{cleanName,nameError,fmt,boardId,pid,keyOf}};
 window.PALB=api})();
-</script><script>PALB.init({"game": "quack-attack", "title": "Quack Attack", "order": "desc", "unit": "pts", "min": 0, "max": 10000000, "boards": null, "watch": [{"when": "state==='over'", "score": "score"}]})</script><!--/lb--><!--share--><style>#dock{position:fixed;z-index:60;display:none;gap:6px;top:0;left:0}#dock.inl{position:static;display:flex;justify-content:center;flex-wrap:wrap;margin:6px auto}
+</script><script>PALB.init({"game": "quack-attack", "title": "Quack Attack", "order": "desc", "unit": "pts", "min": 0, "max": 10000000, "boards": null, "watch": [{"when": "state==='over'&&canRestart()", "score": "score", "delay": 0}], "onOpen": ()=>{window.__lbOpenAt=performance.now()}, "onClose": ()=>{window.__lbClosedAt=performance.now()}})</script><!--/lb--><!--share--><style>#dock{position:fixed;z-index:60;display:none;gap:6px;top:0;left:0}#dock.inl{position:static;display:flex;justify-content:center;flex-wrap:wrap;margin:6px auto}
 .dk{box-sizing:border-box;height:34px;border-radius:17px;border:2px solid #fff;background:rgba(0,0,0,.66);color:#fff;font:bold 14px/30px system-ui,-apple-system,Segoe UI,sans-serif;padding:0 12px;margin:0;white-space:nowrap;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer;flex:none}
 .dk.ic{width:40px;padding:0;font-size:17px}#dock.inl .dk{height:44px;line-height:40px;font-size:17px;padding:0 18px;border-radius:22px;border-width:3px}
 #dockHint{position:fixed;z-index:61;display:none;box-sizing:border-box;background:rgba(10,10,20,.92);color:#fff;border:2px solid #fff;border-radius:12px;font:13px/1.3 system-ui,-apple-system,sans-serif;padding:7px 36px 7px 10px;top:0;left:0}#dockHint.inl{position:relative;margin:4px auto;max-width:320px}
