@@ -181,7 +181,7 @@ function draw(){scene();for(const d of ducks)duck(d);
   beaver(W*.25,GY-30*S,'hold');if(t%60<40)txt('TAP TO START',W/2,H*.62,24*S,'#fff','#000');txt('a five8nine Studios game',W/2,H-56*S,17*S,'#ff2bd6','#0c0018');return}
  hud();if(phase=='dog')dogFront();
  if(phase=='intro')txt(`ROUND ${round}`,W/2,H*.35,40*S,'#fff','#000'),txt(`HIT ${quota()} OF 10`,W/2,H*.35+44*S,20*S,'#f8d838','#000');
- if(phase=='tally'){const n=hits.filter(h=>h).length;txt(`${n} / 10 HIT`,W/2,H*.35,34*S,'#fff','#000');txt(n>=quota()?'NICE SHOOTING!':'QUOTA MISSED…',W/2,H*.35+44*S,20*S,n>=quota()?'#f8d838':'#f86c6c','#000')}
+ if(phase=='tally'&&state=='play'){const n=hits.filter(h=>h).length;txt(`${n} / 10 HIT`,W/2,H*.35,34*S,'#fff','#000');txt(n>=quota()?'NICE SHOOTING!':'QUOTA MISSED…',W/2,H*.35+44*S,20*S,n>=quota()?'#f8d838':'#f86c6c','#000')}
  if(msgT>0){const tl=phase=='tally',sz=tl?24*S:26*S,my=tl?H*.3-50*S:H*.3;g.font=`bold ${sz}px "Courier New",monospace`;const mw=Math.min(W-8*S,g.measureText(msg).width+28*S);g.fillStyle='rgba(10,10,30,.72)';rr(W/2-mw/2,my-sz*.85,mw,sz*1.7,10*S);g.fill();g.strokeStyle='#fff';g.lineWidth=2*S;g.stroke();txt(msg,W/2,my,sz,tl?'#f8d838':'#fff','#000')}
  if(QADOG&&phase=='buck'&&state=='play')txt('TEST MODE: SHOOT THE DOG',W/2,H*.12,18*S,'#fff','#000');
  if(cross.f>0){g.strokeStyle='#fff';g.lineWidth=3*S;g.beginPath();g.arc(cross.x,cross.y,20*S,0,TAU);g.moveTo(cross.x-30*S,cross.y);g.lineTo(cross.x+30*S,cross.y);g.moveTo(cross.x,cross.y-30*S);g.lineTo(cross.x,cross.y+30*S);g.stroke();g.fillStyle=`rgba(255,255,255,${cross.f/30})`;g.fillRect(0,0,W,H)}
