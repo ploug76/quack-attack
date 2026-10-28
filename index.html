@@ -54,16 +54,17 @@ addEventListener('keydown',e=>{if((e.key=='p'||e.key=='P')&&(state=='play'||stat
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&state=='play'){paused=true;ui()}});
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 let round=1,ducks=[],duckNo=0,hits=[],shots=3,phase='',phT=0,cross={x:-99,y:-99,f:0},feathers=[],buck={y:0,mode:'',t:0},GY=0,pops=[],perfect=0;
+let bag=[];// QAPILE: the ducks hit this round (types), for the end-of-round dog tally
 const TYPES=[{c:'#3c9c3c',h:'#2a6a2a',pts:500,sp:1},{c:'#3c6cd8',h:'#24448c',pts:1000,sp:1.25},{c:'#b8542c',h:'#7a3218',pts:1500,sp:1.5}];
 function onResize(){GY=H*.74}
 function quota(){return Math.min(10,6+Math.floor((round-1)/2))}
 function startGame(lv){score=0;dogS.warned=false;dogS.dogged=false;dogS.mad=0;dogS.crack=null;dogS.drips=[];dogS.drops=[];dogS.dirt=[];dogS.hat=null;round=lv;state='play';startRound();ui()}
 const QADOG=Q.get('qa')=='dog';
-function startRound(){hits=[];duckNo=0;phase='intro';phT=0;SND.jingle();if(QADOG){ducks=[];phase='buck';buck.mode='hold';buck.c=TYPES[1].c}}
+function startRound(){hits=[];bag=[];duckNo=0;phase='intro';phT=0;SND.jingle();if(QADOG){ducks=[];phase='buck';buck.mode='hold';buck.c=TYPES[1].c}}
 function launch(){const r=R(),ty=TYPES[r<.55?0:r<.85?1:2],sp=(2.1+.22*round)*ty.sp*S;const a=-Math.PI/2+(R()-.5)*1.4;
  ducks=[{x:W*(.2+R()*.6),y:GY+10*S,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,sp,ty,st:'fly',turn:50+R()*40,fl:0}];shots=3;phase='duck';phT=0;SND.quack()}
-function shoot(x,y){if(state=='play'&&phase=='buck'&&dogHit(x,y))return;if(state!='play'||phase!='duck'||shots<=0)return;shots--;cross={x,y,f:12};SND.shot();
- for(const d of ducks){if(d.st=='fly'&&Math.hypot(d.x-x,d.y-y)<44*S){d.st='hit';d.ht=0;buck.c=d.ty.c;const p=Math.round(d.ty.pts*(1+.1*(round-1))/10)*10;score+=p;saveBest();pops.push({s:'+'+p,x:d.x,y:d.y-30*S,t:0});hits.push(1);
+function shoot(x,y){if(state=='play'&&phase=='tally'){tallySkip();return}if(state=='play'&&phase=='buck'&&dogHit(x,y))return;if(state!='play'||phase!='duck'||shots<=0)return;shots--;cross={x,y,f:12};SND.shot();
+ for(const d of ducks){if(d.st=='fly'&&Math.hypot(d.x-x,d.y-y)<44*S){d.st='hit';d.ht=0;buck.c=d.ty.c;const p=Math.round(d.ty.pts*(1+.1*(round-1))/10)*10;score+=p;saveBest();pops.push({s:'+'+p,x:d.x,y:d.y-30*S,t:0});hits.push(1);bag.push(d.ty);
   for(let i=0;i<10;i++)feathers.push({x:d.x,y:d.y,vx:(R()-.5)*4*S,vy:(R()-.8)*3*S,l:60,c:d.ty.c});phase='fall';phT=0;SND.hit();return}}
  if(shots<=0){phase='away';phT=0;for(const d of ducks)d.st='away';say('FLEW AWAY!',60);hits.push(0);SND.away()}}
 function update(){for(const f of feathers){f.x+=f.vx;f.y+=f.vy;f.vy+=.05*S;f.vx*=.98;f.l--}feathers=feathers.filter(f=>f.l>0);for(const p of pops)p.t++;pops=pops.filter(p=>p.t<50);if(cross.f>0)cross.f--;
@@ -80,7 +81,7 @@ function update(){for(const f of feathers){f.x+=f.vx;f.y+=f.vy;f.vy+=.05*S;f.vx*
  if(phase=='away'&&ducks.every(d=>d.y<-60*S)){phase='buck';phT=0;buck.mode='laugh';SND.laugh()}
  if(phase=='buck'&&QADOG&&phT>100)phT=100;
  if(phase=='buck'&&phT>150){duckNo++;ducks=[];if(duckNo>=10){phase='tally';phT=0;const n=hits.filter(h=>h).length;if(n>=quota()){if(n==10){score+=2000*round;say('PERFECT! +'+2000*round,140);SND.perfect()}else{say('ROUND CLEAR!',120);SND.jingle()}saveBest()}else{SND.over()}}else launch()}
- if(phase=='tally'&&phT>150){const n=hits.filter(h=>h).length;if(n>=quota()){round++;startRound()}else endGame()}}
+ if(phase=='tally'&&phT>tallyEnd()){const n=hits.filter(h=>h).length;if(n>=quota()){round++;startRound()}else endGame()}}
 function duck(d){const s=S*1.5,dir=d.vx<0?-1:1;g.save();g.translate(d.x,d.y);
  if(d.st=='hit'&&d.ht>30){g.rotate(Math.PI/2*dir)}else if(d.st=='away'){}else g.scale(dir,1);
  if(d.st=='hit'&&d.ht<=30){g.scale(dir,1)}
@@ -213,6 +214,29 @@ function dogOverlay(){const c=dogS.crack,p=phT;
   g.beginPath();g.arc(c.cx,c.cy,22*S,0,TAU);g.stroke()}}
  if(p>=DG.crk&&p<DG.crk+12&&state=='play'){g.fillStyle=`rgba(255,255,255,${(DG.crk+12-p)/12})`;g.fillRect(0,0,W,H)}
  const h=dogS.hat;if(h&&h.y<H+80*S){g.save();g.translate(h.x,h.y);g.rotate(h.r);const s=S*1.6;g.fillStyle='#e8701c';g.beginPath();g.ellipse(0,0,16*s,10*s,0,Math.PI,TAU);g.fill();g.fillStyle='#b8501c';g.fillRect(-16*s,-1*s,32*s,4*s);g.beginPath();g.ellipse(14*s,2*s,10*s,3*s,0,0,TAU);g.fill();g.restore()}}
+// QAPILE: end-of-round tally. Bucky trots in carrying the ducks hit this round and drops them one by one onto a pile while a BAG counter ticks up.
+// 0 ducks: he trots in empty-handed and shrugs. Tap to skip ahead. Lasts 150-210 ticks (2.5-3.5 s); the round result text and next-round flow are unchanged.
+const TL={walk:45,fly:14};
+function tallyIv(n){return n<=4?16:Math.round(100/n)}
+function tallyEnd(){const n=bag.length;return n?Math.max(150,TL.walk+(n-1)*tallyIv(n)+TL.fly+60):150}
+function tallyLanded(){const n=bag.length;let k=0;for(let i=0;i<n;i++)if(phT>=TL.walk+i*tallyIv(n)+TL.fly)k++;return k}
+function tallySkip(){const e=tallyEnd()-40;if(phT<e){phT=e;msgT=Math.min(msgT,30)}}
+function tallyGeo(){const gl=GY+(H-112*S-GY)*.5,s=S*1.5,bw=34*S,rh=14*S;return{gl,s,dx:W*.3,px:W*.66,bw,rh}}
+function pileSlot(i,G){let r=0,n=4,j=i;while(j>=n&&n>1){j-=n;n--;r++}return{x:G.px+(j-(n-1)/2)*G.bw,y:G.gl-8*S-r*G.rh}}
+function deadDuck(x,y,k,ty,dir,hang){g.save();g.translate(x,y);g.scale(k,k);duck({x:0,y:0,vx:dir,ty,st:'hit',ht:hang?40:0,fl:0});g.restore()}
+function tallyAnim(){const n=bag.length,G=tallyGeo(),s=G.s,p=phT,iv=tallyIv(n),land=tallyLanded(),F=Math.max(20*S,18*(DPR||1));
+ const tx=n?G.dx:W*.42,wk=Math.min(1,p/TL.walk),x=-70*s+(tx+70*s)*(1-(1-wk)*(1-wk)),y=G.gl-27*s,moving=wk<1;
+ for(let i=0;i<land;i++){const q=pileSlot(i,G),bnc=p-(TL.walk+i*iv+TL.fly)<6?Math.sin((p-(TL.walk+i*iv+TL.fly))/6*Math.PI)*-4*S:0;deadDuck(q.x,q.y+bnc,.5,bag[i],i%2?-1:1,false)}
+ const out=n?Math.min(n,Math.max(0,Math.ceil((p-TL.walk+1)/iv))):0;
+ const shrug=!n&&!moving?Math.max(0,Math.sin((p-TL.walk)*.14))*7*S:0;
+ dogSide(x,y-shrug,s,{trot:moving,smug:n>0&&land>=n});
+ const mx=x+40*s,my=y-12*s;
+ for(let i=n-1;i>=out;i--){const j=n-1-i;if(j>2)continue;deadDuck(mx-j*4*S,my+8*S+j*3*S,.42,bag[i],1,true)}
+ for(let i=0;i<n;i++){const t0=TL.walk+i*iv;if(p<t0||p>=t0+TL.fly)continue;const k=(p-t0)/TL.fly,q=pileSlot(i,G);
+  deadDuck(mx+(q.x-mx)*k,my+(q.y-my)*k-Math.sin(k*Math.PI)*70*S,.5,bag[i],i%2?-1:1,false);if(p==t0+TL.fly-1&&!paused)tone(320+i*45,0,.09,'square',.05)}
+ const cy=Math.min(G.gl-100*S,GY-30*S),pop=land&&p-(TL.walk+(land-1)*iv+TL.fly)<8?1.25:1;
+ if(n){txt(`BAG ${land}`,G.px,cy,F*pop,land>=n?'#f8d838':'#fff','#000');if(land>=n&&p>TL.walk+(n-1)*iv+TL.fly+10)txt('*proud wag*',x,y-60*s,F*.9,'#fff','#000')}
+ else if(!moving){txt('?',x+30*s,y-62*s-shrug,F*1.4,'#fff','#000');txt('NO DUCKS… *shrug*',G.px,cy,F,'#fff','#000')}}
 function scene(){let gr=g.createLinearGradient(0,0,0,GY);gr.addColorStop(0,'#3c9cf0');gr.addColorStop(1,'#a8e0f8');g.fillStyle=gr;g.fillRect(0,0,W,H);
  for(let i=0;i<3;i++){const x=((i*W*.45+t*.2*S)%(W+200*S))-100*S,y=H*(.12+i*.1);g.fillStyle='#fff';[[0,0,24],[22,6,18],[-22,6,16]].forEach(([dx,dy,r])=>{g.beginPath();g.arc(x+dx*S,y+dy*S,r*S,0,TAU);g.fill()})}
  g.fillStyle='#6cc06c';g.beginPath();g.moveTo(0,GY);for(let x=0;x<=W;x+=20*S)g.lineTo(x,GY-40*S-Math.sin(x/(90*S))*24*S);g.lineTo(W,GY);g.fill();
@@ -230,7 +254,7 @@ function draw(){scene();for(const d of ducks)duck(d);
  if(state=='title'){duck({x:W*.65+Math.sin(t*.03)*60*S,y:H*.42+Math.sin(t*.05)*20*S,vx:Math.cos(t*.03),ty:TYPES[1],st:'fly',fl:t*.35});panel(H*.08,250*S,'#d8541c');txt('QUACK',W/2,H*.08+50*S,48*S,'#f8d838','#000');txt('ATTACK',W/2,H*.08+100*S,48*S,'#d8541c','#000');
   ['Tap a duck to shoot it','3 shots per duck · 10 per round','Hit the quota to keep going!'].forEach((s,i)=>txt(s,W/2,H*.08+(146+i*24)*S,16.5*S,'#fff'));txt(`BEST ${best}`,W/2,H*.08+226*S,16.5*S,'#f8d838');
   beaver(W*.25,GY-30*S,'hold');if(t%60<40)txt('TAP TO START',W/2,H*.62,24*S,'#fff','#000');txt('a five8nine Studios game',W/2,H-56*S,17*S,'#ff2bd6','#0c0018');return}
- hud();if(phase=='dog'&&state=='play')dogFront();
+ hud();if(phase=='dog'&&state=='play')dogFront();if(phase=='tally'&&state=='play')tallyAnim();
  if(phase=='intro')txt(`ROUND ${round}`,W/2,H*.35,40*S,'#fff','#000'),txt(`HIT ${quota()} OF 10`,W/2,H*.35+44*S,20*S,'#f8d838','#000');
  if(phase=='tally'&&state=='play'){const n=hits.filter(h=>h).length;txt(`${n} / 10 HIT`,W/2,H*.35,34*S,'#fff','#000');txt(n>=quota()?'NICE SHOOTING!':'QUOTA MISSED…',W/2,H*.35+44*S,20*S,n>=quota()?'#f8d838':'#f86c6c','#000')}
  if(msgT>0){const tl=phase=='tally',sz=tl?24*S:26*S,my=tl?H*.3-50*S:H*.3;g.font=`bold ${sz}px "Courier New",monospace`;const mw=Math.min(W-8*S,g.measureText(msg).width+28*S);g.fillStyle='rgba(10,10,30,.72)';rr(W/2-mw/2,my-sz*.85,mw,sz*1.7,10*S);g.fill();g.strokeStyle='#fff';g.lineWidth=2*S;g.stroke();txt(msg,W/2,my,sz,tl?'#f8d838':'#fff','#000')}
