@@ -30,7 +30,9 @@ addEventListener('beforeinstallprompt',e=>{e.preventDefault();e.stopImmediatePro
 <button id="inst">📲 Install app</button><div id="ios">On iPhone/iPad: tap Share ⬆ then “Add to Home Screen”</div>
 <script>
 const c=document.getElementById('c'),g=c.getContext('2d'),$=id=>document.getElementById(id),R=Math.random,TAU=Math.PI*2,CL=(v,a,b)=>v<a?a:v>b?b:v,PICK=a=>a[Math.floor(R()*a.length)];
-let W,H,S,DPR;function rs(){DPR=devicePixelRatio||1;W=c.width=Math.round(innerWidth*DPR);H=c.height=Math.round(innerHeight*DPR);S=Math.min(W/400,H/720);if(window.onResize)onResize()}addEventListener('resize',rs);
+let W,H,S,U,DPR;function rs(){DPR=devicePixelRatio||1;W=c.width=Math.round(innerWidth*DPR);H=c.height=Math.round(innerHeight*DPR);S=Math.min(W/400,H/720);U=Math.max(S,DPR);if(window.onResize)onResize()}addEventListener('resize',rs);addEventListener('orientationchange',()=>setTimeout(rs,300));if(window.visualViewport)visualViewport.addEventListener('resize',rs);
+// U = UI scale: same as S on a portrait phone, but never smaller than 1 CSS px, so HUD/menu text stays >=16px in landscape
+function sizeOk(){const d=devicePixelRatio||1;return Math.abs(c.width-Math.round(innerWidth*d))<2&&Math.abs(c.height-Math.round(innerHeight*d))<2}
 const KEY='qa',Q=new URLSearchParams(location.search),startLv=CL(parseInt(Q.get('level'))||1,1,99);
 let overMs=0,state='title',paused=false,muted=localStorage.getItem(KEY+'Mute')=='1',best=+localStorage.getItem(KEY+'Best')||0,score=0,level=1,t=0,overT=0,msg='',msgT=0;
 const OVER_HOLD=2500;function canRestart(){return state=='over'&&t-overT>=150&&performance.now()-overMs>=OVER_HOLD}
@@ -41,7 +43,7 @@ function tone(f,t0,d,type,v,f2){if(!ac||muted)return;const o=ac.createOscillator
 function noise(d,v,fq,t0){if(!ac||muted)return;const b=ac.createBuffer(1,Math.max(1,ac.sampleRate*d|0),ac.sampleRate),x=b.getChannelData(0);for(let i=0;i<x.length;i++)x[i]=(R()*2-1)*(1-i/x.length);const s=ac.createBufferSource(),f=ac.createBiquadFilter(),gn=ac.createGain();s.buffer=b;f.type='lowpass';f.frequency.value=fq||2000;gn.gain.value=v||.2;s.connect(f).connect(gn).connect(ac.destination);s.start(ac.currentTime+(t0||0))}
 function seq(notes,step,type,v){notes.forEach((f,i)=>f&&tone(f,i*step,step*1.6,type,v))}
 let MUSIC=null,ms=0;setInterval(()=>{if(!ac||muted||paused||ac.state!='running'||!MUSIC||state!='play')return;MUSIC(ms++)},180);
-function txt(s,x,y,sz,fill,stroke,al){g.font=`bold ${sz}px "Courier New",monospace`;g.textAlign=al||'center';g.textBaseline='middle';g.lineJoin='round';if(stroke){g.lineWidth=Math.max(2,sz/5);g.strokeStyle=stroke;g.strokeText(s,x,y)}g.fillStyle=fill;g.fillText(s,x,y)}
+function txt(s,x,y,sz,fill,stroke,al){sz=Math.max(sz,16*(DPR||1));g.font=`bold ${sz}px "Courier New",monospace`;g.textAlign=al||'center';g.textBaseline='middle';g.lineJoin='round';if(stroke){g.lineWidth=Math.max(2,sz/5);g.strokeStyle=stroke;g.strokeText(s,x,y)}g.fillStyle=fill;g.fillText(s,x,y)}
 function rr(x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()}
 function circ(x,y,r,col){g.fillStyle=col;g.beginPath();g.arc(x,y,r,0,TAU);g.fill()}
 function say(m,d){msg=m;msgT=d||100}
@@ -56,7 +58,7 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
 let round=1,ducks=[],duckNo=0,hits=[],shots=3,phase='',phT=0,cross={x:-99,y:-99,f:0},feathers=[],buck={y:0,mode:'',t:0},GY=0,pops=[],perfect=0;
 let bag=[];// QAPILE: the ducks hit this round (types), for the end-of-round dog tally
 const TYPES=[{c:'#3c9c3c',h:'#2a6a2a',pts:500,sp:1},{c:'#3c6cd8',h:'#24448c',pts:1000,sp:1.25},{c:'#b8542c',h:'#7a3218',pts:1500,sp:1.5}];
-function onResize(){GY=H*.74}
+function onResize(){GY=H*.74;window.SKYTOP=SKYTOP=Math.max(H*.1,64*DPR)}let SKYTOP=0;
 function quota(){return Math.min(10,6+Math.floor((round-1)/2))}
 function startGame(lv){score=0;dogS.warned=false;dogS.dogged=false;dogS.mad=0;dogS.crack=null;dogS.drips=[];dogS.drops=[];dogS.dirt=[];dogS.hat=null;round=lv;state='play';startRound();ui()}
 const QADOG=Q.get('qa')=='dog';
@@ -64,7 +66,7 @@ function startRound(){hits=[];bag=[];duckNo=0;phase='intro';phT=0;SND.jingle();i
 function launch(){const r=R(),ty=TYPES[r<.55?0:r<.85?1:2],sp=(2.1+.22*round)*ty.sp*S;const a=-Math.PI/2+(R()-.5)*1.4;
  ducks=[{x:W*(.2+R()*.6),y:GY+10*S,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,sp,ty,st:'fly',turn:50+R()*40,fl:0}];shots=3;phase='duck';phT=0;SND.quack()}
 function shoot(x,y){if(state=='play'&&phase=='tally'){tallySkip();return}if(state=='play'&&phase=='buck'&&dogHit(x,y))return;if(state!='play'||phase!='duck'||shots<=0)return;shots--;cross={x,y,f:12};SND.shot();
- for(const d of ducks){if(d.st=='fly'&&Math.hypot(d.x-x,d.y-y)<44*S){d.st='hit';d.ht=0;buck.c=d.ty.c;const p=Math.round(d.ty.pts*(1+.1*(round-1))/10)*10;score+=p;saveBest();pops.push({s:'+'+p,x:d.x,y:d.y-30*S,t:0});hits.push(1);bag.push(d.ty);
+ const hr=Math.max(44*S,34*DPR);for(const d of ducks){const ds=S*1.5,dr=d.vx<0?-1:1;if(d.st=='fly'&&(Math.hypot(d.x-x,d.y-y)<hr||Math.hypot(d.x+dr*15*ds-x,d.y-9*ds-y)<hr*.8)){d.st='hit';d.ht=0;buck.c=d.ty.c;const p=Math.round(d.ty.pts*(1+.1*(round-1))/10)*10;score+=p;saveBest();pops.push({s:'+'+p,x:d.x,y:d.y-30*S,t:0});hits.push(1);bag.push(d.ty);
   for(let i=0;i<10;i++)feathers.push({x:d.x,y:d.y,vx:(R()-.5)*4*S,vy:(R()-.8)*3*S,l:60,c:d.ty.c});phase='fall';phT=0;SND.hit();return}}
  if(shots<=0){phase='away';phT=0;for(const d of ducks)d.st='away';say('FLEW AWAY!',60);hits.push(0);SND.away()}}
 function update(){for(const f of feathers){f.x+=f.vx;f.y+=f.vy;f.vy+=.05*S;f.vx*=.98;f.l--}feathers=feathers.filter(f=>f.l>0);for(const p of pops)p.t++;pops=pops.filter(p=>p.t<50);if(cross.f>0)cross.f--;
@@ -73,7 +75,7 @@ function update(){for(const f of feathers){f.x+=f.vx;f.y+=f.vy;f.vy+=.05*S;f.vx*
  if(phase=='dog'){dogUpdate();return}if(dogS.mad>0)dogS.mad--;
  for(const d of ducks){d.fl+=d.st=='away'?.5:.35;
   if(d.st=='fly'){d.x+=d.vx;d.y+=d.vy;if(--d.turn<=0){const a=Math.atan2(d.vy,d.vx)+(R()-.5)*2;d.vx=Math.cos(a)*d.sp;d.vy=Math.sin(a)*d.sp;d.turn=40+R()*60}
-   if(d.x<30*S&&d.vx<0||d.x>W-30*S&&d.vx>0)d.vx*=-1;if(d.y<H*.1&&d.vy<0)d.vy=Math.abs(d.vy);if(d.y>GY-50*S&&d.vy>0&&phT>40)d.vy=-Math.abs(d.vy);if(t%40==0&&R()<.4)SND.quack()}
+   if(d.x<30*S&&d.vx<0||d.x>W-30*S&&d.vx>0)d.vx*=-1;if(d.y<SKYTOP&&d.vy<0)d.vy=Math.abs(d.vy);if(d.y>GY-50*S&&d.vy>0&&phT>40)d.vy=-Math.abs(d.vy);if(t%40==0&&R()<.4)SND.quack()}
   else if(d.st=='hit'){d.ht++;if(d.ht>30){d.y+=Math.min(12*S,(d.ht-30)*.6*S)}}
   else if(d.st=='away'){d.y-=d.sp*1.6;d.x+=d.vx*.3}}
  if(phase=='duck'&&phT>Math.max(240,430-18*round)){phase='away';phT=0;for(const d of ducks)d.st='away';say('FLEW AWAY!',60);hits.push(0);SND.away()}
@@ -243,10 +245,18 @@ function scene(){let gr=g.createLinearGradient(0,0,0,GY);gr.addColorStop(0,'#3c9
  g.fillStyle='#7a4a24';g.fillRect(W*.08,GY-210*S,22*S,210*S);g.fillStyle='#3c8c3c';[[0,-230,60],[-40,-190,44],[40,-190,46],[0,-170,50]].forEach(([dx,dy,r])=>circ(W*.08+11*S+dx*S,GY+dy*S,r*S,'#3c8c3c'))}
 function grass(){g.fillStyle='#4ca83c';g.fillRect(0,GY,W,H-GY);g.fillStyle='#3c8c2c';for(let x=0;x<W;x+=10*S){g.beginPath();g.moveTo(x,GY+4*S);g.lineTo(x+5*S,GY-18*S-((x/S)%7)*2*S);g.lineTo(x+10*S,GY+4*S);g.fill()}
  g.fillStyle='#c89c5c';g.fillRect(0,H-112*S,W,112*S);g.fillStyle='#2a1a0c';g.fillRect(0,H-112*S,W,4*S)}
-function hud(){const F=Math.max(17*S,16.5*(DPR||1)),K=Math.max(1,F/(17*S)),y=H-100*S,EX=158*S*K;/* K: widen the SHOT/HIT row when text is larger than the scaled layout (landscape) */txt(`ROUND ${round}`,14*S,y+12*S,F,'#fff','#2a1a0c','left');txt(`SCORE ${score}`,W-14*S,y+12*S,F,'#fff','#2a1a0c','right');
- txt('SHOT',12*S,y+44*S,F,'#fff','#2a1a0c','left');for(let i=0;i<3;i++){g.fillStyle=i<shots?'#d82c2c':'rgba(0,0,0,.2)';rr(62*S*K+i*15*S*K,y+35*S,10*S,18*S,3*S);g.fill()}
- txt('HIT',114*S*K,y+44*S,F,'#fff','#2a1a0c','left');for(let i=0;i<10;i++){const h=hits[i];const x=EX+i*21*S*K;g.fillStyle=h===1?'#d82c2c':h===0?'#555':i==duckNo&&phase=='duck'&&t%30<15?'#fff':'#f8f0d8';g.beginPath();g.ellipse(x+8*S,y+44*S,8*S,6*S,0,0,TAU);g.fill()}
- const qx=EX+quota()*21*S*K-3*S*K;g.fillStyle='#2a6cd8';g.fillRect(qx,y+32*S,3*S,26*S);txt(`QUOTA ${quota()}`,14*S,y+78*S,F,'#fff','#2a1a0c','left');txt(`BEST ${best}`,W-14*S,y+78*S,F,'#fff','#2a1a0c','right')}
+let HUDR=[];
+function hud(){const u=U,BT=H-112*S,BH=112*S,F=17*u,m=14*u;g.font=`bold ${F}px "Courier New",monospace`;const mw=q=>g.measureText(q).width;HUDR=[];
+ const T=(q,x,y,al)=>{txt(q,x,y,F,'#fff','#2a1a0c',al);const w=mw(q);HUDR.push([al=='right'?x-w:al=='center'?x-w/2:x,y-F/2,w,F,'lbl:'+q])};
+ const two=BH<3*F*1.3+6*u,shL=mw('SHOT'),hiL=mw('HIT'),fixed=shL+8*u+18*u+hiL+8*u;let k=1;
+ const rS=`ROUND ${round}`,sS=`SCORE ${score}`,qS=`QUOTA ${quota()}`,bS=`BEST ${best}`;
+ const grp=()=>fixed+(3*15+10*21)*u*k;if(m+grp()>W-m)k=Math.max(.6,(W-2*m-fixed)/((3*15+10*21)*u));
+ let r1,r2,r3,gx;if(!two){r1=BT+BH*24/112;r2=BT+BH*56/112;r3=BT+BH*90/112;gx=m;T(rS,m,r1,'left');T(sS,W-m,r1,'right');T(qS,m,r3,'left');T(bS,W-m,r3,'right')}
+ else{r1=BT+BH*.3;r2=r1;r3=BT+BH*.76;gx=Math.max(m+mw(rS)+24*u,(W-grp())/2);T(rS,m,r1,'left');const sOn1=gx+grp()+24*u+mw(sS)<=W-m;if(sOn1)T(sS,W-m,r1,'right');else T(sS,W/2,r3,'center');T(qS,m,r3,'left');T(bS,W-m,r3,'right')}
+ T('SHOT',gx,r2,'left');const sx=gx+shL+8*u;for(let i=0;i<3;i++){g.fillStyle=i<shots?'#d82c2c':'rgba(0,0,0,.2)';rr(sx+i*15*u*k,r2-9*u,10*u*k,18*u,3*u*k);g.fill()}HUDR.push([sx,r2-9*u,(30+10)*u*k,18*u,'shots']);
+ const hx=sx+3*15*u*k+18*u;T('HIT',hx,r2,'left');const EX=hx+hiL+8*u,hw=21*u*k;
+ for(let i=0;i<10;i++){const h=hits[i];const x=EX+i*hw;g.fillStyle=h===1?'#d82c2c':h===0?'#555':i==duckNo&&phase=='duck'&&t%30<15?'#fff':'#f8f0d8';g.beginPath();g.ellipse(x+8*u*k,r2,8*u*k,6*u,0,0,TAU);g.fill()}HUDR.push([EX,r2-6*u,9*hw+16*u*k,12*u,'hits']);
+ const qx=EX+quota()*hw-3*u*k,bh=two?22*u:26*u;g.fillStyle='#2a6cd8';g.fillRect(qx,r2-bh/2,3*u,bh)}
 function draw(){scene();for(const d of ducks)duck(d);
  if(phase=='buck'){beaver(W/2,dogPos().y,buck.mode)}
  if(phase=='dog'&&state=='play')dogBack();
