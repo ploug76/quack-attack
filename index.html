@@ -173,7 +173,7 @@ function dogSide(x,y,s,o){const {K,K2,K3,KE,EY,LT,LIP,MZ,DU,HAW}=LAB,tr=o.trot?M
  g.fillStyle='#8a3cc8';g.beginPath();g.moveTo(14*s,-12*s);g.lineTo(22*s,-2*s);g.lineTo(12*s,2*s);g.closePath();g.fill();
  if(lift>.25){[[-22,14,9],[-12,16,8],[-30,18,8],[-18,6,7]].forEach(([a,b,r])=>circ(a*s,b*s,r*s,'#2e8a2e'));circ(-20*s,10*s,3*s,'#3cb84c');circ(-13*s,17*s,2.5*s,'#3cb84c');
   g.save();g.translate(-18*s,9*s);g.rotate(t*.08);g.fillStyle='#fff8a0';g.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4,r=(i%2?3:11)*s;g.lineTo(Math.cos(a)*r,Math.sin(a)*r)}g.closePath();g.fill();g.restore();
-  txt('CENSORED',-26*s,-20*s,Math.max(16*S,6*s),'#fff','#000')}
+  txt('CENSORED',-26*s,-20*s,Math.max(16*U,6*s),'#fff','#000')}
  g.restore()}
 function dogPos(){const k=Math.min(1,phT/20)*(phT>130?Math.max(0,1-(phT-130)/20):1);return{k,y:GY+40*S-k*120*S}}
 function dogHit(x,y){const p=dogPos(),s=S*1.3;if(p.k<.25||Math.abs(x-W/2)>48*s||y<p.y-58*s||y>Math.min(GY+12*S,p.y+50*s))return false;
@@ -206,10 +206,10 @@ function dogFront(){const p=phT;
  for(const d of dogS.dirt){g.fillStyle='#7a5228';g.fillRect(d.x,d.y,d.sz,d.sz)}
  for(const d of dogS.drops){const x=d.x+(d.tx-d.x)*d.k,y=d.y+(d.ty-d.y)*d.k-Math.sin(d.k*Math.PI)*60*S;circ(x,y,(2+d.k*7)*S,'rgba(240,214,40,.75)')}
  dogOverlay();
- if(p>=DG.crk&&p<DG.walk){txt('YOU GOT DOGGED!',W/2,H*.16+Math.sin(t*.2)*3*S,30*S,'#f8d838','#000');if(p>=DG.crk+6)txt('HEH HEH HEH!',W/2+60*S,GY-150*S-(p%30<15?4*S:0),18*S,'#fff','#000')}
- if(p>=DG.walk+72&&p<DG.walk+172)txt('psssst…',W*.42-26*S*2.4,H*.6-60*S*2.4/2.4-70*S,18*S,'#fff8a0','#000');
- if(p>=DG.walk+182&&p<DG.walk+228)txt('kick! kick!',W*.42-30*S*2.4,H*.6+70*S,18*S,'#fff','#000');
- if(p>=DG.walk+230&&p<DG.end)txt('*smug trot*',W/2,H*.2,18*S,'#fff','#000')}
+ if(p>=DG.crk&&p<DG.walk){txt('YOU GOT DOGGED!',W/2,Math.max(H*.16,30*U)+Math.sin(t*.2)*3*S,30*U,'#f8d838','#000');if(p>=DG.crk+6)txt('HEH HEH HEH!',W/2+60*S+40*(U-S),GY-150*S-(p%30<15?4*S:0),18*U,'#fff','#000')}
+ if(p>=DG.walk+72&&p<DG.walk+172)txt('psssst…',W*.42-26*S*2.4,H*.6-60*S*2.4/2.4-70*S,18*U,'#fff8a0','#000');
+ if(p>=DG.walk+182&&p<DG.walk+228)txt('kick! kick!',W*.42-30*S*2.4,H*.6+70*S,18*U,'#fff','#000');
+ if(p>=DG.walk+230&&p<DG.end)txt('*smug trot*',W/2,H*.2,18*U,'#fff','#000')}
 function dogOverlay(){const c=dogS.crack,p=phT;
  for(const d of dogS.drips){g.fillStyle='rgba(240,214,40,.42)';rr(d.x-d.w/2,d.y-d.w/2,d.w,d.l+d.w,d.w/2);g.fill();circ(d.x,d.y+d.l+d.w*.3,d.w*.75,'rgba(240,214,40,.55)')}
  if(c){g.lineJoin='round';for(const [col,lw] of [['rgba(255,255,255,.9)',3.5*S],['rgba(40,40,60,.8)',1.2*S]]){g.strokeStyle=col;g.lineWidth=lw;for(const pl of c.L){g.beginPath();pl.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.stroke()}
@@ -257,20 +257,28 @@ function hud(){const u=U,BT=H-112*S,BH=112*S,F=17*u,m=14*u;g.font=`bold ${F}px "
  const hx=sx+3*15*u*k+18*u;T('HIT',hx,r2,'left');const EX=hx+hiL+8*u,hw=21*u*k;
  for(let i=0;i<10;i++){const h=hits[i];const x=EX+i*hw;g.fillStyle=h===1?'#d82c2c':h===0?'#555':i==duckNo&&phase=='duck'&&t%30<15?'#fff':'#f8f0d8';g.beginPath();g.ellipse(x+8*u*k,r2,8*u*k,6*u,0,0,TAU);g.fill()}HUDR.push([EX,r2-6*u,9*hw+16*u*k,12*u,'hits']);
  const qx=EX+quota()*hw-3*u*k,bh=two?22*u:26*u;g.fillStyle='#2a6cd8';g.fillRect(qx,r2-bh/2,3*u,bh)}
-function draw(){scene();for(const d of ducks)duck(d);
+function titleScreen(){const u=U,L=W>H*1.15,d=DPR,K=[];const kc=(x,y,w,h,n)=>K.push([x/d,y/d,w/d,h/d,n]);
+ const PT=L?Math.max(H*.04,62*d):Math.max(H*.08,62*d),PH=L?170*u:250*u;
+ if(L)duck({x:W*.8+Math.sin(t*.03)*50*u,y:PT+PH+44*u+Math.sin(t*.05)*10*u,vx:Math.cos(t*.03),ty:TYPES[1],st:'fly',fl:t*.35});
+ else duck({x:W*.65+Math.sin(t*.03)*60*S,y:Math.max(H*.42,PT+PH+50*u)+Math.sin(t*.05)*20*S,vx:Math.cos(t*.03),ty:TYPES[1],st:'fly',fl:t*.35});
+ panel(PT,PH,'#d8541c');kc(W*.06,PT,W*.88,PH,'logo');let y;
+ if(L){const F=42*u;g.font=`bold ${F}px "Courier New",monospace`;const tw=g.measureText('QUACK ATTACK').width;txt('QUACK',W/2-tw/2,PT+38*u,F,'#f8d838','#000','left');txt('ATTACK',W/2+tw/2,PT+38*u,F,'#d8541c','#000','right');y=PT+76*u}
+ else{txt('QUACK',W/2,PT+50*u,48*u,'#f8d838','#000');txt('ATTACK',W/2,PT+100*u,48*u,'#d8541c','#000');y=PT+146*u}
+ ['Tap a duck to shoot it','3 shots per duck · 10 per round','Hit the quota to keep going!'].forEach((q,i)=>txt(q,W/2,y+i*24*u,16.5*u,'#fff'));txt(`BEST ${best}`,W/2,y+80*u,16.5*u,'#f8d838');
+ beaver(W*.25,GY-30*S,'hold');const ty=L?PT+PH+32*u:Math.max(H*.62,PT+PH+40*u);if(t%60<40)txt('TAP TO START',W/2,ty,24*u,'#fff','#000');kc(W/2-110*u,ty-16*u,220*u,32*u,'text');
+ const cy=L?H-18*u:H-56*S;txt('a five8nine Studios game',W/2,cy,17*u,'#ff2bd6','#0c0018');kc(W/2-130*u,cy-12*u,260*u,24*u,'text');window.__keepClear=K}
+function draw(){if(state!='title')window.__keepClear=null;scene();for(const d of ducks)duck(d);
  if(phase=='buck'){beaver(W/2,dogPos().y,buck.mode)}
  if(phase=='dog'&&state=='play')dogBack();
- grass();for(const f of feathers){g.fillStyle=f.c;g.fillRect(f.x,f.y,4*S,2*S)}for(const p of pops)txt(p.s,p.x,p.y-p.t*S,16*S,'#fff','#000');
- if(state=='title'){duck({x:W*.65+Math.sin(t*.03)*60*S,y:H*.42+Math.sin(t*.05)*20*S,vx:Math.cos(t*.03),ty:TYPES[1],st:'fly',fl:t*.35});panel(H*.08,250*S,'#d8541c');txt('QUACK',W/2,H*.08+50*S,48*S,'#f8d838','#000');txt('ATTACK',W/2,H*.08+100*S,48*S,'#d8541c','#000');
-  ['Tap a duck to shoot it','3 shots per duck · 10 per round','Hit the quota to keep going!'].forEach((s,i)=>txt(s,W/2,H*.08+(146+i*24)*S,16.5*S,'#fff'));txt(`BEST ${best}`,W/2,H*.08+226*S,16.5*S,'#f8d838');
-  beaver(W*.25,GY-30*S,'hold');if(t%60<40)txt('TAP TO START',W/2,H*.62,24*S,'#fff','#000');txt('a five8nine Studios game',W/2,H-56*S,17*S,'#ff2bd6','#0c0018');return}
+ grass();for(const f of feathers){g.fillStyle=f.c;g.fillRect(f.x,f.y,4*S,2*S)}for(const p of pops)txt(p.s,p.x,p.y-p.t*S,16.5*U,'#fff','#000');
+ if(state=='title'){titleScreen();return}
  hud();if(phase=='dog'&&state=='play')dogFront();if(phase=='tally'&&state=='play')tallyAnim();
- if(phase=='intro')txt(`ROUND ${round}`,W/2,H*.35,40*S,'#fff','#000'),txt(`HIT ${quota()} OF 10`,W/2,H*.35+44*S,20*S,'#f8d838','#000');
- if(phase=='tally'&&state=='play'){const n=hits.filter(h=>h).length;txt(`${n} / 10 HIT`,W/2,H*.35,34*S,'#fff','#000');txt(n>=quota()?'NICE SHOOTING!':'QUOTA MISSED…',W/2,H*.35+44*S,20*S,n>=quota()?'#f8d838':'#f86c6c','#000')}
- if(msgT>0){const tl=phase=='tally',sz=tl?24*S:26*S,my=tl?H*.3-50*S:H*.3;g.font=`bold ${sz}px "Courier New",monospace`;const mw=Math.min(W-8*S,g.measureText(msg).width+28*S);g.fillStyle='rgba(10,10,30,.72)';rr(W/2-mw/2,my-sz*.85,mw,sz*1.7,10*S);g.fill();g.strokeStyle='#fff';g.lineWidth=2*S;g.stroke();txt(msg,W/2,my,sz,tl?'#f8d838':'#fff','#000')}
- if(QADOG&&phase=='buck'&&state=='play')txt('TEST MODE: SHOOT THE DOG',W/2,H*.12,18*S,'#fff','#000');
+ if(phase=='intro'&&!paused)txt(`ROUND ${round}`,W/2,H*.35,40*U,'#fff','#000'),txt(`HIT ${quota()} OF 10`,W/2,H*.35+44*U,20*U,'#f8d838','#000');
+ if(phase=='tally'&&state=='play'&&!paused){const n=hits.filter(h=>h).length;txt(`${n} / 10 HIT`,W/2,H*.35,34*U,'#fff','#000');txt(n>=quota()?'NICE SHOOTING!':'QUOTA MISSED…',W/2,H*.35+44*U,20*U,n>=quota()?'#f8d838':'#f86c6c','#000')}
+ if(msgT>0&&!paused){const tl=phase=='tally';let sz=tl?24*U:26*U;const my=tl?Math.max(H*.3-50*U,70*DPR):H*.3;g.font=`bold ${sz}px "Courier New",monospace`;const tw=g.measureText(msg).width;if(tw+28*U>W-8*U)sz=Math.max(16*DPR,sz*(W-36*U)/tw);g.font=`bold ${sz}px "Courier New",monospace`;const mw=Math.min(W-8*U,g.measureText(msg).width+28*U);g.fillStyle='rgba(10,10,30,.72)';rr(W/2-mw/2,my-sz*.85,mw,sz*1.7,10*U);g.fill();g.strokeStyle='#fff';g.lineWidth=2*U;g.stroke();txt(msg,W/2,my,sz,tl?'#f8d838':'#fff','#000')}
+ if(QADOG&&phase=='buck'&&state=='play')txt('TEST MODE: SHOOT THE DOG',W/2,H*.12,18*U,'#fff','#000');
  if(cross.f>0){g.strokeStyle='#fff';g.lineWidth=3*S;g.beginPath();g.arc(cross.x,cross.y,20*S,0,TAU);g.moveTo(cross.x-30*S,cross.y);g.lineTo(cross.x+30*S,cross.y);g.moveTo(cross.x,cross.y-30*S);g.lineTo(cross.x,cross.y+30*S);g.stroke();g.fillStyle=`rgba(255,255,255,${cross.f/30})`;g.fillRect(0,0,W,H)}
- if(state=='over'){panel(H*.26,190*S,'#d8541c');if(dogS.dogged)txt('YOU GOT DOGGED!',W/2,H*.26+40*S,26*S,'#f8d838');else txt('GAME OVER',W/2,H*.26+40*S,32*S,'#f86c6c');txt(`SCORE ${score}`,W/2,H*.26+82*S,20*S,'#fff');txt(`ROUND ${round} · BEST ${best}`,W/2,H*.26+112*S,16.5*S,'#f8d838');const by=H*.26+154*S;if(canRestart()){const pu=1+Math.sin(t*.12)*.04,bw=W*.7*pu,bh=40*S*pu;g.fillStyle='#d8541c';rr(W/2-bw/2,by-bh/2,bw,bh,10*S);g.fill();g.strokeStyle='#fff';g.lineWidth=3*S;g.stroke();txt('TAP TO PLAY AGAIN',W/2,by,Math.max(20*S,17*(DPR||1)),'#fff','#000')}else{const k=Math.min(1,(performance.now()-overMs)/OVER_HOLD),bw=W*.5;g.fillStyle='rgba(255,255,255,.18)';g.fillRect(W/2-bw/2,by-3*S,bw,6*S);g.fillStyle='#f8d838';g.fillRect(W/2-bw/2,by-3*S,bw*k,6*S)}}}
+ if(state=='over'){const u=U,PT=Math.min(H*.26,H-198*u);panel(PT,190*u,'#d8541c');if(dogS.dogged)txt('YOU GOT DOGGED!',W/2,PT+40*u,26*u,'#f8d838');else txt('GAME OVER',W/2,PT+40*u,32*u,'#f86c6c');txt(`SCORE ${score}`,W/2,PT+82*u,20*u,'#fff');txt(`ROUND ${round} · BEST ${best}`,W/2,PT+112*u,16.5*u,'#f8d838');const by=PT+154*u;if(canRestart()){const pu=1+Math.sin(t*.12)*.04,bw=Math.min(W*.7,300*u)*pu,bh=44*u*pu;g.fillStyle='#d8541c';rr(W/2-bw/2,by-bh/2,bw,bh,10*u);g.fill();g.strokeStyle='#fff';g.lineWidth=3*u;g.stroke();txt('TAP TO PLAY AGAIN',W/2,by,20*u,'#fff','#000')}else{const k=Math.min(1,(performance.now()-overMs)/OVER_HOLD),bw=Math.min(W*.5,240*u);g.fillStyle='rgba(255,255,255,.18)';g.fillRect(W/2-bw/2,by-3*u,bw,6*u);g.fillStyle='#f8d838';g.fillRect(W/2-bw/2,by-3*u,bw*k,6*u)}}}
 c.addEventListener('pointerdown',e=>{A();if(paused||state!='play')return;const r=c.getBoundingClientRect();shoot((e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height)});
 // Start/restart: listen on the whole document, not just the canvas or the TAP TO START text. Buttons (Share/Scores/Install/mute/pause, leaderboard, sample lock) stop propagation, and are skipped here too.
 const NOSTART='button,a,input,select,textarea,#dock,#dockHint,#palbOv,#smpLock,#smpBack',START_GUARD=300;
@@ -293,7 +301,7 @@ snicker:()=>{[0,.13,.26,.42,.55].forEach((d,i)=>tone(i%2?380:440,d,.07,'square',
 jingle:()=>seq([392,523,659,523,784,0,659,784],.1,'square',.06),perfect:()=>seq([523,659,784,1046,784,1046,1318],.09,'square',.07),over:()=>seq([392,330,262,196],.2,'triangle',.12)};
 MUSIC=i=>{if(phase!='duck')return;if(i%2==0)tone([196,0,247,0,294,0,247,0][i%8]||196,0,.12,'triangle',.03)};
 
-rs();let last=performance.now(),acc=0;const STEP=1000/60;function loop(ts){acc+=Math.min(250,ts-last);last=ts;while(acc>=STEP){if(!paused){t++;if(msgT>0)msgT--;update()}acc-=STEP}draw();if(paused){g.fillStyle='rgba(0,0,0,.55)';g.fillRect(0,0,W,H);txt('PAUSED',W/2,H*.42,40*S,'#fff');txt('tap ▶ to resume',W/2,H*.42+44*S,17*S,'#ccc')}requestAnimationFrame(loop)}ui();requestAnimationFrame(loop);
+rs();let last=performance.now(),acc=0;const STEP=1000/60;function loop(ts){if(!sizeOk())rs();acc+=Math.min(250,ts-last);last=ts;while(acc>=STEP){if(!paused){t++;if(msgT>0)msgT--;update()}acc-=STEP}draw();if(paused){g.fillStyle='rgba(0,0,0,.55)';g.fillRect(0,0,W,H);txt('PAUSED',W/2,H*.42,40*U,'#fff');txt('tap ▶ to resume',W/2,H*.42+44*U,17*U,'#ccc')}requestAnimationFrame(loop)}ui();requestAnimationFrame(loop);
 </script><!--lb--><script>// LIVE config (Firestore). Public web keys only (safe to ship per Firebase docs). Used only for J Woo's Fishing Challenge + its five8nine copy.
 window.PALB_CONFIG = {
   backend: 'firestore',
