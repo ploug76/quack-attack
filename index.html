@@ -599,4 +599,18 @@ window.__unlock={unlocked:un,sample:window.__SAMPLE||null,get badge(){return las
 #palbTabs button{min-height:48px!important;font-size:16px!important}
 #palbList li{min-height:30px;height:auto!important;font-size:16px!important}
 </style>
+<!-- gamepad:start -->
+<script src="gamepad.js?v=1"></script>
+<script>
+GamepadSupport.init({
+ keys:{start:'KeyP',back:function(p){if(p)document.getElementById('mute').click()}},
+ menuKeys:{a:'Enter',x:'Enter',start:'Enter'},
+ ignoreSel:'#dock,#mute,#pause,#inst,#ios,.tb,#bar',
+ menu:function(){return !!document.querySelector('#palbOv.on,#smpLock.on')||(state!=='play'&&state!=='inter');},
+ cursor:function(){return (state==='play'||state==='inter')&&!paused&&!document.querySelector('#palbOv.on,#smpLock.on');},
+ cursorSpeed:1100,
+ hint:{text:'🎮 Controller: stick to aim · A to shoot · Start to pause · Select to mute',when:function(){return state==='title'&&!document.querySelector('#palbOv.on')}}
+});
+</script>
+<!-- gamepad:end -->
 </body></html>
