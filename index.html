@@ -160,7 +160,9 @@ function dogF(x,y,s,mode,o){o=o||{};const sh=mode=='laugh'?Math.sin(t*.7)*2*s:mo
  else if(mode=='aim'){const gk=1+(o.gk||0),cx=4*s,cy=20*s;g.fillStyle='#38b048';rr(cx-12*s*gk,cy-7*s*gk,24*s*gk,16*s*gk,4*s*gk);g.fill();circ(cx,cy,10*s*gk,'#f8902c');circ(cx,cy,6.5*s*gk,'#3a2a1a');if(!o.fired)circ(cx,cy,5*s*gk,'#d8a868');
   g.fillStyle='#f8d838';g.font=`bold ${9*s*gk}px sans-serif`;g.textAlign='center';g.textBaseline='middle';g.fillText('★',cx+9*s*gk,cy-6*s*gk);for(const d of [-1,1]){g.beginPath();g.arc(cx+d*13*s*gk,cy+4*s,5*s,0,TAU);g.fillStyle=K2;g.fill();rim()}}
  g.restore()}
-function dogSide(x,y,s,o){const {K,K2,K3,KE,EY,LT,LIP,MZ,DU,HAW}=LAB,tr=o.trot?Math.sin(t*.6):0,rim=(w)=>{g.strokeStyle=K3;g.lineWidth=(w||1.2)*s;g.stroke()};g.save();g.translate(x,y);g.lineCap='round';g.lineJoin='round';
+/* leg rig (Grey Heart leg check, Oct 2026): trot phase follows distance moved, legs ease to standing when stopped */
+const DSL={};function dsTrot(x,s,on){const now=performance.now()/1000,dt=Math.min(.1,Math.max(0,now-(DSL.lt||now)));DSL.lt=now;let dx=DSL.x===undefined?0:Math.abs(x-DSL.x);DSL.x=x;if(dx>60*s)dx=0;DSL.ph=(DSL.ph||0)+dx/(44*s)*Math.PI*2;const mv=on&&dx>.05*s;DSL.a=(DSL.a||0)+((mv?1:0)-(DSL.a||0))*Math.min(1,dt*(mv?12:7));if(DSL.a<.02&&!mv){DSL.a=0;DSL.ph=Math.round(DSL.ph/Math.PI)*Math.PI}return Math.sin(DSL.ph)*DSL.a}
+function dogSide(x,y,s,o){const {K,K2,K3,KE,EY,LT,LIP,MZ,DU,HAW}=LAB,tr=dsTrot(x,s,o.trot),rim=(w)=>{g.strokeStyle=K3;g.lineWidth=(w||1.2)*s;g.stroke()};g.save();g.translate(x,y);g.lineCap='round';g.lineJoin='round';
  const leg=(px,ang)=>{g.save();g.translate(px,4*s);g.rotate(ang);rr(-3.5*s,0,7*s,20*s,3*s);g.fillStyle=K;g.fill();rim();g.beginPath();g.ellipse(1.5*s,20*s,5*s,3*s,0,0,TAU);g.fill();rim();g.restore()};
  leg(14*s,tr*.4);leg(20*s,-tr*.4);leg(-12*s,-tr*.4);const lift=o.leg||0,kick=o.kick?Math.abs(Math.sin(t*.35))*.9:0;if(lift<.25)leg(-18*s,tr*.4+lift*1.9+kick);
  // thick otter tail
