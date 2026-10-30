@@ -110,11 +110,11 @@ let dogS={warned:false,mad:0,crack:null,drips:[],drops:[],dirt:[],hat:null,dogge
 // Bucky: black Labrador Retriever with HUGE droopy jowls (front view). Same footprint/positions as before, hitbox untouched.
 const JOWL=.6;// jowl size (1 = the original HUGE jowls)
 const LAB={K:'#17171d',K2:'#2e313b',K3:'#4f5566',KE:'#09090d',EY:'#5c3519',MZ:'#2c2826',DU:'rgba(140,110,88,.22)',HAW:'#b04656',LT:'#b8bfce',PK:'#f07890',LIP:'#c25a6a'};
-function dogF(x,y,s,mode,o){o=o||{};const sh=mode=='laugh'?Math.sin(t*.7)*2*s:mode=='mad'?Math.sin(t*1.9)*1.5*s:0,bob=o.walk?-Math.abs(Math.sin(t*.25))*4*s:0;g.save();g.translate(x+sh,y+bob);
+function dogF(x,y,s,mode,o){o=o||{};const sh=mode=='laugh'?Math.sin(t*.7)*2*s:mode=='mad'?Math.sin(t*1.9)*1.5*s:0,bob=o.walk?-Math.abs(Math.sin(t*.092))*4*s:0;g.save();g.translate(x+sh,y+bob);
  const {K,K2,K3,KE,EY,LT,PK,LIP,MZ,DU,HAW}=LAB,rim=(w)=>{g.strokeStyle=K3;g.lineWidth=(w||1.4)*s;g.stroke()},mad=mode=='mad'||mode=='aim';g.lineCap='round';g.lineJoin='round';
  // thick otter tail
  g.beginPath();g.moveTo(12*s,36*s);g.quadraticCurveTo(31*s,28*s,27*s+Math.sin(t*.5)*4*s,10*s);g.strokeStyle=K3;g.lineWidth=10.5*s;g.stroke();g.strokeStyle=K;g.lineWidth=8*s;g.stroke();
- if(o.walk){const k=Math.sin(t*.25);g.fillStyle=K;g.beginPath();g.ellipse(-9*s,46*s+k*2*s,7*s,5*s,0,0,TAU);g.fill();rim();g.beginPath();g.ellipse(9*s,46*s-k*2*s,7*s,5*s,0,0,TAU);g.fill();rim()}
+ if(o.walk){const k=Math.sin(t*.092);/* cadence: ~1.75 steps/s walk-up (was ~4.8) */g.fillStyle=K;g.beginPath();g.ellipse(-9*s,46*s+k*2*s,7*s,5*s,0,0,TAU);g.fill();rim();g.beginPath();g.ellipse(9*s,46*s-k*2*s,7*s,5*s,0,0,TAU);g.fill();rim()}
  g.fillStyle=K;g.beginPath();g.ellipse(0,22*s,20*s,26*s,0,0,TAU);g.fill();rim(1.6);g.fillStyle='#22242c';g.beginPath();g.ellipse(0,27*s,11*s,16*s,0,0,TAU);g.fill();
  g.fillStyle='#8a3cc8';g.beginPath();g.moveTo(-15*s,7*s);g.lineTo(15*s,7*s);g.lineTo(0,21*s);g.closePath();g.fill();circ(-4*s,11*s,1.5*s,'#fff');circ(4*s,10*s,1.5*s,'#fff');circ(0,15*s,1.5*s,'#fff');
  // soft rounded head, glossy highlight, a little wavy fur on top
@@ -161,7 +161,7 @@ function dogF(x,y,s,mode,o){o=o||{};const sh=mode=='laugh'?Math.sin(t*.7)*2*s:mo
   g.fillStyle='#f8d838';g.font=`bold ${9*s*gk}px sans-serif`;g.textAlign='center';g.textBaseline='middle';g.fillText('★',cx+9*s*gk,cy-6*s*gk);for(const d of [-1,1]){g.beginPath();g.arc(cx+d*13*s*gk,cy+4*s,5*s,0,TAU);g.fillStyle=K2;g.fill();rim()}}
  g.restore()}
 /* leg rig (Grey Heart leg check, Oct 2026): trot phase follows distance moved, legs ease to standing when stopped */
-const DSL={};function dsTrot(x,s,on){const now=performance.now()/1000,dt=Math.min(.1,Math.max(0,now-(DSL.lt||now)));DSL.lt=now;let dx=DSL.x===undefined?0:Math.abs(x-DSL.x);DSL.x=x;if(dx>60*s)dx=0;DSL.ph=(DSL.ph||0)+dx/(44*s)*Math.PI*2;const mv=on&&dx>.05*s;DSL.a=(DSL.a||0)+((mv?1:0)-(DSL.a||0))*Math.min(1,dt*(mv?12:7));if(DSL.a<.02&&!mv){DSL.a=0;DSL.ph=Math.round(DSL.ph/Math.PI)*Math.PI}return Math.sin(DSL.ph)*DSL.a}
+const DSL={};function dsTrot(x,s,on){const now=performance.now()/1000,dt=Math.min(.1,Math.max(0,now-(DSL.lt||now)));DSL.lt=now;let dx=DSL.x===undefined?0:Math.abs(x-DSL.x);DSL.x=x;if(dx>60*s)dx=0;DSL.ph=(DSL.ph||0)+Math.min(dx/(44*s)*Math.PI*2,dt*Math.PI*3);/* cadence (arm check, Oct 30 2026): trot capped at 3 steps/s (was ~10.5) */const mv=on&&dx>.05*s;DSL.a=(DSL.a||0)+((mv?1:0)-(DSL.a||0))*Math.min(1,dt*(mv?12:7));if(DSL.a<.02&&!mv){DSL.a=0;DSL.ph=Math.round(DSL.ph/Math.PI)*Math.PI}return Math.sin(DSL.ph)*DSL.a}
 function dogSide(x,y,s,o){const {K,K2,K3,KE,EY,LT,LIP,MZ,DU,HAW}=LAB,tr=dsTrot(x,s,o.trot),rim=(w)=>{g.strokeStyle=K3;g.lineWidth=(w||1.2)*s;g.stroke()};g.save();g.translate(x,y);g.lineCap='round';g.lineJoin='round';
  const leg=(px,ang)=>{g.save();g.translate(px,4*s);g.rotate(ang);rr(-3.5*s,0,7*s,20*s,3*s);g.fillStyle=K;g.fill();rim();g.beginPath();g.ellipse(1.5*s,20*s,5*s,3*s,0,0,TAU);g.fill();rim();g.restore()};
  leg(14*s,tr*.4);leg(20*s,-tr*.4);leg(-12*s,-tr*.4);const lift=o.leg||0,kick=o.kick?Math.abs(Math.sin(t*.35))*.9:0;if(lift<.25)leg(-18*s,tr*.4+lift*1.9+kick);
@@ -198,7 +198,7 @@ function dogUpdate(){const p=phT;
  if(p==DG.crk){const cx=W*.5+(R()-.5)*W*.2,cy=H*.38,L=[];for(let i=0;i<11;i++){let a=i/11*TAU+R()*.4,x=cx,y=cy,pl=[[x,y]];for(let j=0;j<5;j++){x+=Math.cos(a)*(30+R()*40)*S;y+=Math.sin(a)*(30+R()*40)*S;a+=(R()-.5)*.6;pl.push([x,y])}L.push(pl)}dogS.crack={cx,cy,L};
   dogS.hat={x:W*.5,y:H*.95,vx:(R()<.5?-1:1)*3*S,vy:-17*S,r:0};SND.crack()}
  if(p==DG.crk+24||p==DG.crk+62)SND.snicker();
- if(p>=DG.walk&&p<DG.walk+60&&p%16==0)SND.step();
+ if(p>=DG.walk&&p<DG.walk+60&&p%34==0)SND.step();
  if(p==DG.walk+72)SND.pss();
  if(p>=DG.walk+72&&p<DG.walk+160&&p%3==0)dogS.drops.push({x:W*.42-26*S*2.4,y:H*.6+6*S*2.4,tx:R()*W,ty:R()*H*.75,k:0});
  if(p==DG.walk+185||p==DG.walk+200||p==DG.walk+215)SND.kick();
